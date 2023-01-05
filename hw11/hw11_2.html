@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>구구단 출력</title>
+<script type="text/javascript">
+    function myFunction() {
+        var num = document.getElementById("num").value;
+        var result = "";
+        for (var i = 1; i <= 9; ++i) {
+            result += num + " * " + i + " = " + (num * i) + "<br>";
+        }
+        document.getElementById("result").innerHTML = result;
+    }
+</script>
+</head>
+
+<body>
+<div>
+    <form>
+        숫자를 입력하시오 <br><input type="text" id="num">
+        <input type="button" value="구구단 출력" onclick="myFunction()">
+    </form>
+    <p id="result"></p>
+</div>
+</body>
+
+</html>

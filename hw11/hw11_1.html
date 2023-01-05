@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>나이 구하기</title>
+    <script>
+        function age() {
+
+            if (document.getElementById("year").value == ""
+                || document.getElementById("month").value == ""
+                || document.getElementById("day").value == "") {
+                alert("년, 월, 일을 다 입력해 주세요");
+                return;
+            }
+
+            const today = new Date();
+            const birthDate = new Date(document.getElementById("year").value,
+                document.getElementById("month").value,
+                document.getElementById("day").value);
+
+            let age = today.getFullYear()
+                - birthDate.getFullYear()
+                + 1;
+
+            alert("당신의 나이는 " + age + "세 입니다.");
+        }
+    </script>
+</head>
+
+<body>
+    <h3>생년월일을 입력하시오</h3>
+    <input type="text" name="year" id="year"> 년
+    <input type="text" name="month" id="month"> 월
+    <input type="text" name="day" id="day"> 일
+    <input type="button" value="제출" onClick="age()">
+</body>
+
+</html>
