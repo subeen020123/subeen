@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#fff1f2" />
+  <title>점메추 룰렛 | 오늘 점심 뭐 먹지?</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: #0f172a;
+      background:
+        radial-gradient(circle at top right, rgba(186, 230, 253, 0.55), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(254, 205, 211, 0.65), transparent 32%),
+        linear-gradient(135deg, #fff1f2 0%, #fdf2f8 45%, #f0f9ff 100%);
+    }
+
+    button {
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      margin-bottom: 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+      color: #fb7185;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 8px 22px rgba(251, 113, 133, 0.13);
+    }
+
+    h1 {
+      margin: 0;
+      color: #020617;
+      font-size: clamp(40px, 10vw, 64px);
+      line-height: 1.05;
+      letter-spacing: -0.06em;
+      font-weight: 950;
+    }
+
+    .subtitle {
+      max-width: 640px;
+      margin: 16px auto 0;
+      color: #64748b;
+      font-size: 16px;
+      line-height: 1.7;
+      word-break: keep-all;
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: 32px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 20px 40px rgba(251, 113, 133, 0.13);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .roulette-panel {
+      padding: 28px 20px;
+    }
+
+    .blur-a,
+    .blur-b {
+      position: absolute;
+      width: 230px;
+      height: 230px;
+      border-radius: 999px;
+      filter: blur(48px);
+      opacity: .7;
+      pointer-events: none;
+    }
+
+    .blur-a {
+      top: -80px;
+      right: -80px;
+      background: rgba(254, 205, 211, .55);
+    }
+
+    .blur-b {
+      bottom: -90px;
+      left: -80px;
+      background: rgba(186, 230, 253, .55);
+    }
+
+    .roulette-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .wheel {
+      position: relative;
+      width: min(72vw, 288px);
+      height: min(72vw, 288px);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 12px;
+      background: linear-gradient(135deg, #fecdd3, #fef3c7, #bae6fd);
+      box-shadow: 0 24px 48px rgba(251, 113, 133, .18);
+    }
+
+    .wheel::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: inherit;
+      border: 4px dashed rgba(255, 255, 255, .78);
+    }
+
+    .wheel-inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, .9);
+    }
+
+    .wheel-emoji {
+      font-size: clamp(48px, 14vw, 72px);
+      line-height: 1;
+    }
+
+    .wheel-label {
+      margin-top: 10px;
+      color: #fb7185;
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .02em;
+    }
+
+    .wheel.spinning {
+      animation: rouletteSpin 2.4s cubic-bezier(.15,.8,.25,1) infinite;
+    }
+
+    @keyframes rouletteSpin {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(900deg) scale(1.04); }
+      100% { transform: rotate(1800deg) scale(1); }
+    }
+
+    @keyframes pop {
+      0% { transform: translateY(8px) scale(.96); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .result-area {
+      width: 100%;
+      max-width: 576px;
+      min-height: 150px;
+    }
+
+    .result-card {
+      width: 100%;
+      border-radius: 32px;
+      background: white;
+      padding: 28px 24px;
+      box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .result-card.pop {
+      animation: pop .35s ease-out both;
+    }
+
+    .result-kicker {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .result-title {
+      margin: 8px 0 0;
+      color: #020617;
+      font-size: clamp(36px, 10vw, 56px);
+      line-height: 1.1;
+      letter-spacing: -0.06em;
+      font-weight: 950;
+      word-break: keep-all;
+    }
+
+    .place-section {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .place-title {
+      margin: 0 0 10px;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .place-buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .place-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: #ffe4e6;
+      color: #be123c;
+      font-size: 14px;
+      font-weight: 950;
+      text-decoration: none;
+      box-shadow: 0 8px 18px rgba(251, 113, 133, 0.12);
+    }
+
+    .place-link:active {
+      transform: scale(.985);
+    }
+
+
+    .spin-button {
+      width: 100%;
+      max-width: 576px;
+      margin-top: 24px;
+      border: 0;
+      border-radius: 26px;
+      padding: 20px 24px;
+      background: #020617;
+      color: white;
+      font-size: 18px;
+      font-weight: 950;
+      box-shadow: 0 20px 34px rgba(15, 23, 42, .18);
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    .spin-button:active {
+      transform: scale(.985);
+    }
+
+    .spin-button:disabled {
+      cursor: not-allowed;
+      background: #cbd5e1;
+      box-shadow: none;
+    }
+
+    .history-panel {
+      padding: 20px;
+    }
+
+    .history-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 950;
+    }
+
+    .history-desc {
+      margin: 4px 0 16px;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .history-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .history-card {
+      border-radius: 24px;
+      background: white;
+      padding: 16px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+    }
+
+    .history-emoji {
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .history-name {
+      margin: 10px 0 0;
+      font-size: 18px;
+      font-weight: 950;
+    }
+
+    .empty-history {
+      border-radius: 24px;
+      background: white;
+      padding: 20px;
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .footer {
+      padding-bottom: 8px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    @media (min-width: 640px) {
+      .page {
+        padding: 32px 24px;
+      }
+
+      .roulette-panel {
+        padding: 36px 28px;
+      }
+
+      .history-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .spin-button {
+        font-size: 20px;
+      }
+    }
+
+    @media (min-width: 960px) {
+      .history-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="container">
+      <header class="header">
+        <p class="badge">🍽️ 오늘 점심 뭐 먹지?</p>
+        <h1>점메추 룰렛</h1>
+        <p class="subtitle">버튼을 누르면 룰렛이 돌아가며 오늘의 점심 메뉴를 추천해줘요.</p>
+      </header>
+
+      <section class="panel roulette-panel">
+        <div class="blur-a"></div>
+        <div class="blur-b"></div>
+
+        <div class="roulette-content">
+          <div id="wheel" class="wheel">
+            <div class="wheel-inner">
+              <div>
+                <div id="wheelEmoji" class="wheel-emoji">🎲</div>
+                <div id="wheelLabel" class="wheel-label">LUNCH ROULETTE</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="resultArea" class="result-area"></div>
+
+          <button id="spinButton" class="spin-button" type="button">룰렛 돌리기 🎯</button>
+        </div>
+      </section>
+
+      <section class="panel history-panel">
+        <h2 class="history-title">최근 추천 메뉴</h2>
+        <p class="history-desc">최근에 나온 메뉴를 최대 6개까지 보여줘요.</p>
+        <div id="historyArea"></div>
+      </section>
+
+      <footer class="footer">모두 맛점하세요🙌</footer>
+    </section>
+  </main>
+
+  <script>
+    const menus = [
+  {
+    "id": 1,
+    "name": "포케",
+    "emoji": "🥗",
+    "places": [
+      {
+        "name": "포케 파는 곳",
+        "url": "https://naver.me/FoEN8zYA"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "점심뷔페",
+    "emoji": "🍱",
+    "places": [
+      {
+        "name": "점심뷔페 1",
+        "url": "https://naver.me/F0z2XZ9r"
+      },
+      {
+        "name": "점심뷔페 2",
+        "url": "https://naver.me/5iTd7bGg"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "카레우동",
+    "emoji": "🍛",
+    "places": [
+      {
+        "name": "카레 메뉴 파는 곳",
+        "url": "https://naver.me/FTXwj9dT"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "카레파스타",
+    "emoji": "🍛",
+    "places": [
+      {
+        "name": "카레 메뉴 파는 곳",
+        "url": "https://naver.me/FTXwj9dT"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "카레라이스",
+    "emoji": "🍛",
+    "places": [
+      {
+        "name": "카레 메뉴 파는 곳",
+        "url": "https://naver.me/FTXwj9dT"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "마제소바",
+    "emoji": "🍜",
+    "places": [
+      {
+        "name": "마제소바/돈가스 파는 곳",
+        "url": "https://naver.me/x4FBhCHv"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "돈가스",
+    "emoji": "🍱",
+    "places": [
+      {
+        "name": "마제소바/돈가스 파는 곳",
+        "url": "https://naver.me/x4FBhCHv"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "버블티",
+    "emoji": "🧋",
+    "places": [
+      {
+        "name": "버블티 파는 곳",
+        "url": "https://naver.me/FswRBEqZ"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "쌀국수",
+    "emoji": "🍲",
+    "places": [
+      {
+        "name": "쌀국수 파는 곳 1",
+        "url": "https://naver.me/xeAfD3Yd"
+      },
+      {
+        "name": "쌀국수 파는 곳 2",
+        "url": "https://naver.me/59UiEpnT"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "샐러드파스타",
+    "emoji": "🍝",
+    "places": [
+      {
+        "name": "샐러드파스타 파는 곳",
+        "url": "https://naver.me/5uIYZzD6"
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "name": "제육비빔밥",
+    "emoji": "🍚",
+    "places": [
+      {
+        "name": "비빔밥 메뉴 파는 곳",
+        "url": "https://naver.me/xSFaGzgm"
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "name": "비빔밥",
+    "emoji": "🍚",
+    "places": [
+      {
+        "name": "비빔밥 메뉴 파는 곳",
+        "url": "https://naver.me/xSFaGzgm"
+      }
+    ]
+  }
+];
+
+    let displayMenu = null;
+    let currentMenu = null;
+    let isSpinning = false;
+    let history = [];
+
+    const wheel = document.getElementById("wheel");
+    const wheelEmoji = document.getElementById("wheelEmoji");
+    const wheelLabel = document.getElementById("wheelLabel");
+    const resultArea = document.getElementById("resultArea");
+    const spinButton = document.getElementById("spinButton");
+    const historyArea = document.getElementById("historyArea");
+
+    function randomFrom(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function escapeText(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderResult() {
+      if (!displayMenu) {
+        wheelEmoji.textContent = "🎲";
+        wheelLabel.style.display = "block";
+
+        resultArea.innerHTML = `
+          <div class="result-card">
+            <p class="result-kicker">아직 메뉴가 정해지지 않았어요</p>
+            <h2 class="result-title">룰렛을 돌려보세요</h2>
+          </div>
+        `;
+        return;
+      }
+
+      wheelEmoji.textContent = displayMenu.emoji || "🍚";
+      wheelLabel.style.display = "none";
+
+      const placeHtml = !isSpinning && displayMenu.places && displayMenu.places.length > 0
+        ? `
+          <div class="place-section">
+            <p class="place-title">이 메뉴 파는 곳</p>
+            <div class="place-buttons">
+              ${displayMenu.places.map((place) => `
+                <a
+                  class="place-link"
+                  href="${escapeText(place.url)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  ${escapeText(place.name)} ↗
+                </a>
+              `).join("")}
+            </div>
+          </div>
+        `
+        : "";
+
+      resultArea.innerHTML = `
+        <div class="result-card ${currentMenu && !isSpinning ? "pop" : ""}">
+          <p class="result-kicker">
+            ${isSpinning ? "룰렛 돌아가는 중..." : "오늘의 추천 메뉴"}
+          </p>
+          <h2 class="result-title">${escapeText(displayMenu.name)}</h2>
+          ${placeHtml}
+        </div>
+      `;
+    }
+
+    function renderHistory() {
+      if (history.length === 0) {
+        historyArea.innerHTML = `
+          <div class="empty-history">아직 추천 기록이 없어요. 룰렛을 한 번 돌려보세요.</div>
+        `;
+        return;
+      }
+
+      historyArea.innerHTML = `
+        <div class="history-grid">
+          ${history.map((menu) => `
+            <div class="history-card">
+              <div class="history-emoji">${escapeText(menu.emoji || "🍚")}</div>
+              <p class="history-name">${escapeText(menu.name)}</p>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function render() {
+      wheel.classList.toggle("spinning", isSpinning);
+      spinButton.disabled = isSpinning;
+      spinButton.textContent = isSpinning
+        ? "룰렛 돌리는 중..."
+        : currentMenu
+          ? "다시 돌리기 🎲"
+          : "룰렛 돌리기 🎯";
+
+      renderResult();
+      renderHistory();
+    }
+
+    function spinRoulette() {
+      if (isSpinning) return;
+
+      isSpinning = true;
+      currentMenu = null;
+      render();
+
+      let count = 0;
+      const maxCount = 28;
+
+      const interval = window.setInterval(() => {
+        displayMenu = randomFrom(menus);
+        count += 1;
+        render();
+
+        if (count >= maxCount) {
+          window.clearInterval(interval);
+          const finalMenu = randomFrom(menus);
+          displayMenu = finalMenu;
+          currentMenu = finalMenu;
+          history = [finalMenu, ...history.filter((item) => item.id !== finalMenu.id)].slice(0, 6);
+          isSpinning = false;
+          render();
+        }
+      }, 80);
+    }
+
+    spinButton.addEventListener("click", spinRoulette);
+
+    render();
+  </script>
+</body>
+</html>
